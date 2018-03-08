@@ -1,12 +1,9 @@
 from databroker import Broker
 import numpy as np
-import matplotlib.pyplot as plt
-plt.ion()
-
-
-from handlers import (PizzaBoxEncHandlerTxt, PizzaBoxAnHandlerTxt,
+from qastools.handlers import (PizzaBoxEncHandlerTxt, PizzaBoxAnHandlerTxt,
                       PizzaBoxDIHandlerTxt)
 import os
+import matplotlib.pyplot as plt
 
 db = Broker.named("qas")
 
@@ -40,6 +37,7 @@ file_list = handler.get_file_list(datum_kwargs)
 gg=np.loadtxt(file_list[0])
 
 
+plt.ion()
 plt.figure()
 plt.plot(gg[:,0])
 plt.grid()
