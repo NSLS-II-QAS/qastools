@@ -63,17 +63,18 @@ def interpolate_and_save(db_name, db_analysis_name,
     filepath = DIRECTORY
 
     # file is exported
-    filepath = gen_parser.export_trace(filename, filepath)
+    fileout = gen_parser.export_trace(filename, filepath)
+
 
     if e0 is not None:
-        bin_df, filename = bin_data(gen_parser, e0)
+        bin_df, bin_df_filename = bin_data(gen_parser, e0)
     else:
-        bin_df = None
+        bin_df, bin_df_filename = None, None
 
     result = dict(bin_df=bin_df,
                   bin_df_filename=bin_df_filename,
-                  interp_df=gen_parser.interp_df
-                  interp_df_filename=filename
+                  interp_df=gen_parser.interp_df,
+                  interp_df_filename=fileout
                   )
 
     return result
@@ -103,7 +104,7 @@ def bin_data(gen_parser, e0):
     filepath = DIRECTORY
 
     # file is exported
-    filepath = gen_parser.export_trace(filename, filepath)
+    fileout = gen_parser.export_trace(filename, filepath)
     
 
-    return bin_df, filename
+    return bin_df, fileout
