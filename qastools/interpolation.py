@@ -6,7 +6,7 @@ import os
 
 def interpolate_and_save(db_name, db_analysis_name,
                          uid, mono_name='mono1_enc',
-                         pulses_per_degree=None):
+                         pulses_per_degree=None, e0=None):
     ''' Interpolate measured data and save to an analysis store. 
 
         Parameters
@@ -24,6 +24,13 @@ def interpolate_and_save(db_name, db_analysis_name,
         pulses_per_degree : float
             pulses per degree of the encoder from the monochromator
             defaults to the current setup at QAS
+        e0 : 
+            edge energy. If set, compute binned data
+
+        Returns
+        -------
+            interp_df : the interpolated data
+            bin_df : the binned data if e0 is set
     '''
     # the pulses per degree, hard coded for now
     # TODO : Make a signal to pb1.enc1
@@ -34,8 +41,8 @@ def interpolate_and_save(db_name, db_analysis_name,
     else:
         ppd = pulses_per_degree
 
-    db = Broker.named("db_name")
-    db_analysis = Broker.named("db_analysis_name")
+    db = Broker.named(db_name)
+    db_analysis = Broker.named(db_analysis_name)
 
     # the important part of Bruno's code that does the interpolation
     gen_parser= xasdata.XASdataGeneric(ppd, db=db, mono_name='mono1_enc')
@@ -48,17 +55,28 @@ def interpolate_and_save(db_name, db_analysis_name,
     #energy = encoder2energy(res[:,3], ppd)
 
     PREFIX = "/nsls2/xf07bm/data/interpolated_data"
-    write_path_template = PREFIX + '/%Y/%m/%d'
+    write_path_template = PREFIX + '/%Y/%m/%d/'
     DIRECTORY = datetime.now().strftime(write_path_template)
 
     filename = 'xas_' + str(uuid4())[:6]
-    os.makedirs(DIRECTORY)
+    os.makedirs(DIRECTORY,exist_ok=True)
     filepath = DIRECTORY
 
     # file is exported
     filepath = gen_parser.export_trace(filename, filepath)
 
-    return gen_parser
+    if e0 is not None:
+        bin_df, filename = bin_data(gen_parser, e0)
+    else:
+        bin_df = None
+
+    result = dict(bin_df=bin_df,
+                  bin_df_filename=bin_df_filename,
+                  interp_df=gen_parser.interp_df
+                  interp_df_filename=filename
+                  )
+
+    return result
 
 
 def bin_data(gen_parser, e0):
@@ -77,14 +95,15 @@ def bin_data(gen_parser, e0):
     bin_df = gen_parser.bin(e0, e0 - 30, e0 + 30, 4, 0.2, 0.04)
 
     PREFIX = "/nsls2/xf07bm/data/interpolated_data"
-    write_path_template = PREFIX + '/%Y/%m/%d'
+    write_path_template = PREFIX + '/%Y/%m/%d/'
     DIRECTORY = datetime.now().strftime(write_path_template)
 
     filename = 'xas_' + str(uuid4())[:6]
-    os.makedirs(DIRECTORY)
+    os.makedirs(DIRECTORY,exist_ok=True)
     filepath = DIRECTORY
 
     # file is exported
     filepath = gen_parser.export_trace(filename, filepath)
+    
 
-    return bin_df
+    return bin_df, filename
