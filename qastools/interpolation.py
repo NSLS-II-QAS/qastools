@@ -42,6 +42,8 @@ def interpolate_and_save(db_name, db_analysis_name,
         ppd = pulses_per_degree
 
     db = Broker.named(db_name)
+    hdr = db[uid]
+
     db_analysis = Broker.named(db_analysis_name)
 
     # the important part of Bruno's code that does the interpolation
@@ -57,8 +59,9 @@ def interpolate_and_save(db_name, db_analysis_name,
     PREFIX = "/nsls2/xf07bm/data/interpolated_data"
     write_path_template = PREFIX + '/%Y/%m/%d/'
     DIRECTORY = datetime.now().strftime(write_path_template)
+    scan_id = hdr.start['scan_id']
 
-    filename = 'xas_' + str(uuid4())[:6]
+    filename = 'xas_' + str(uuid4())[:6] + "_nonbinned_" + str(scan_id)
     os.makedirs(DIRECTORY,exist_ok=True)
     filepath = DIRECTORY
 
@@ -67,25 +70,27 @@ def interpolate_and_save(db_name, db_analysis_name,
 
 
     if e0 is not None:
-        bin_df, bin_df_filename = bin_data(gen_parser, e0)
+        bin_df, bin_df_filename = bin_data(gen_parser, e0, scan_id=scan_id)
     else:
         bin_df, bin_df_filename = None, None
 
     result = dict(bin_df=bin_df,
                   bin_df_filename=bin_df_filename,
                   interp_df=gen_parser.interp_df,
-                  interp_df_filename=fileout
+                  interp_df_filename=fileout,
+                  scan_id=scan_id
                   )
 
     return result
 
 
-def bin_data(gen_parser, e0):
+def bin_data(gen_parser, e0, scan_id=""):
     ''' Bin the data according to iss binning algorithm.
 
         Parameters
         ----------
             e0 : the energy of the edge
+            scan_id : optional scan_id for the file writing
 
         Returns
         -------
@@ -99,7 +104,8 @@ def bin_data(gen_parser, e0):
     write_path_template = PREFIX + '/%Y/%m/%d/'
     DIRECTORY = datetime.now().strftime(write_path_template)
 
-    filename = 'xas_' + str(uuid4())[:6]
+    #filename = 'xas_' + str(uuid4())[:6]
+    filename = 'xas_' + str(uuid4())[:6] + "_binned_" + str(scan_id)
     os.makedirs(DIRECTORY,exist_ok=True)
     filepath = DIRECTORY
 
