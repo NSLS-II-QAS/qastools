@@ -61,7 +61,8 @@ def interpolate_and_save(db_name, db_analysis_name,
     DIRECTORY = datetime.now().strftime(write_path_template)
     scan_id = hdr.start['scan_id']
 
-    filename = 'xas_' + str(uuid4())[:6] + "_nonbinned_" + str(scan_id)
+    md = hdr.start
+    filename = 'xas_' + md.get("name", str(uuid4())[:6]) + "_" + str(scan_id)
     os.makedirs(DIRECTORY,exist_ok=True)
     filepath = DIRECTORY
 
@@ -70,7 +71,7 @@ def interpolate_and_save(db_name, db_analysis_name,
 
 
     if e0 is not None:
-        bin_df, bin_df_filename = bin_data(gen_parser, e0, scan_id=scan_id)
+        bin_df, bin_df_filename = bin_data(gen_parser, fileout, e0, scan_id=scan_id)
     else:
         bin_df, bin_df_filename = None, None
 
@@ -84,7 +85,7 @@ def interpolate_and_save(db_name, db_analysis_name,
     return result
 
 
-def bin_data(gen_parser, e0, scan_id=""):
+def bin_data(gen_parser, binned_file, e0, scan_id=""):
     ''' Bin the data according to iss binning algorithm.
 
         Parameters
@@ -100,17 +101,17 @@ def bin_data(gen_parser, e0, scan_id=""):
     # commented out for now
     bin_df = gen_parser.bin(e0, e0 - 30, e0 + 30, 4, 0.2, 0.04)
 
-    PREFIX = "/nsls2/xf07bm/data/interpolated_data"
-    write_path_template = PREFIX + '/%Y/%m/%d/'
-    DIRECTORY = datetime.now().strftime(write_path_template)
+    #PREFIX = "/nsls2/xf07bm/data/interpolated_data"
+    #write_path_template = PREFIX + '/%Y/%m/%d/'
+    #DIRECTORY = datetime.now().strftime(write_path_template)
 
     #filename = 'xas_' + str(uuid4())[:6]
-    filename = 'xas_' + str(uuid4())[:6] + "_binned_" + str(scan_id)
-    os.makedirs(DIRECTORY,exist_ok=True)
-    filepath = DIRECTORY
+    #filename = 'xas_' + str(uuid4())[:6] + str(scan_id)
+    #os.makedirs(DIRECTORY,exist_ok=True)
+    #filepath = DIRECTORY
 
     # file is exported
-    fileout = gen_parser.export_trace(filename, filepath)
+    fileout = gen_parser.data_manager.export_dat(binned_file, e0)
     
 
     return bin_df, fileout
