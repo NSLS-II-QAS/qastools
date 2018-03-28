@@ -6,7 +6,7 @@ import os
 
 def interpolate_and_save(db_name, db_analysis_name,
                          uid, mono_name='mono1_enc',
-                         pulses_per_degree=None, e0=None):
+                         pulses_per_degree=None):
     ''' Interpolate measured data and save to an analysis store. 
 
         Parameters
@@ -24,8 +24,6 @@ def interpolate_and_save(db_name, db_analysis_name,
         pulses_per_degree : float
             pulses per degree of the encoder from the monochromator
             defaults to the current setup at QAS
-        e0 : 
-            edge energy. If set, compute binned data
 
         Returns
         -------
@@ -43,6 +41,12 @@ def interpolate_and_save(db_name, db_analysis_name,
 
     db = Broker.named(db_name)
     hdr = db[uid]
+    start = hdr.start
+    if 'e0' not in start:
+        e0 = 8979
+        print("Warning, e0 not in start, setting to Cu: {}".format(e0))
+    else:
+        e0 = float(hdr.start['e0'])
 
     db_analysis = Broker.named(db_analysis_name)
 
@@ -70,10 +74,7 @@ def interpolate_and_save(db_name, db_analysis_name,
     fileout = gen_parser.export_trace(filename, filepath)
 
 
-    if e0 is not None:
-        bin_df, bin_df_filename = bin_data(gen_parser, fileout, e0, scan_id=scan_id)
-    else:
-        bin_df, bin_df_filename = None, None
+    bin_df, bin_df_filename = bin_data(gen_parser, fileout, e0, scan_id=scan_id)
 
     result = dict(bin_df=bin_df,
                   bin_df_filename=bin_df_filename,
