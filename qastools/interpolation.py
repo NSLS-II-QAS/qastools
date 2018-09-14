@@ -3,6 +3,7 @@ from databroker import Broker
 from uuid import uuid4
 from datetime import datetime
 import os
+from subprocess import call
 
 def interpolate_and_save(db_name, db_analysis_name,
                          uid, mono_name='mono1_enc',
@@ -72,6 +73,7 @@ def interpolate_and_save(db_name, db_analysis_name,
 
     # file is exported
     fileout = gen_parser.export_trace(filename, filepath)
+    call(['chmod', '774', fileout])
 
 
     bin_df, bin_df_filename = bin_data(gen_parser, fileout, e0, scan_id=scan_id)
@@ -113,6 +115,7 @@ def bin_data(gen_parser, binned_file, e0, scan_id=""):
 
     # file is exported
     fileout = gen_parser.data_manager.export_dat(binned_file, e0)
+    call(['chmod', '774', fileout])
     
 
     return bin_df, fileout
